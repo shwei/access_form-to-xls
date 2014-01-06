@@ -1,0 +1,121 @@
+Attribute VB_Name = "modFuzzy"
+Option Compare Database
+
+Option Explicit
+Public Declare Function GetTickCount Lib "kernel32.dll" () As Long
+
+Public labels() As Control
+Public labelIdx As Integer
+'To be placed in the Declarations area
+'_____________________________________
+Sub TestFuzzy()
+'Dim t As Long, a As Long, i As Long
+'t = GetTickCount
+'For i = 1 To 100000
+'a = fuzzy("Sorin Sion", "Open Source")
+'Next
+'Debug.Print "Similarity score: " & a & "; " & i - 1 & " iterations took " & _
+'GetTickCount - t & " milliseconds"
+    
+    Debug.Print "score: " & fuzzy("Sorin Sion", "Open Source")
+    
+End Sub
+'TestFuzzy's result should look like:
+'Similarity score: 0.3; 100000 iterations took 2094 milliseconds
+'The test was done on an Intel processor at 3.2GHz
+'_____________________________________
+Public Function fuzzy(ByVal S1 As String, ByVal S2 As String) As Single
+    Dim i As Integer, j As Integer, k As Integer, D1 As Integer, D2 As Integer, p As Integer
+    Dim c As String, a1 As String, a2 As String, f As Single, o As Single, w As Single
+'
+' ******* INPUT STRINGS CLEANSING *******
+'
+    S1 = UCase(S1) 'input strings are converted to uppercase
+    D1 = Len(S1)
+    j = 1
+    For i = 1 To D1
+        c = Mid(S1, i, 1)
+        Select Case c
+            Case "0" To "9", "A" To "Z" 'filter the allowable characters
+                a1 = a1 & c             'a1 is what remains from s1 after filtering
+                j = j + 1
+        End Select
+    Next
+    If j = 1 Then Exit Function 'if s1 is empty after filtering
+    D1 = j - 1
+    S2 = UCase(S2)
+    D2 = Len(S2)
+    j = 1
+    For i = 1 To D2
+        c = Mid(S2, i, 1)
+        Select Case c
+            Case "0" To "9", "A" To "Z"
+                a2 = a2 & c
+                j = j + 1
+        End Select
+    Next
+    If j = 1 Then Exit Function
+    D2 = j - 1
+    k = D1
+    If D2 < D1 Then 'to prevent doubling the code below s1 must be made the shortest string,
+'so we swap the variables
+        k = D2
+        D2 = D1
+        D1 = k
+        S1 = a2
+        S2 = a1
+        a1 = S1
+        a2 = S2
+    Else
+        S1 = a1
+        S2 = a2
+    End If
+    If k = 1 Then 'degenerate case, where the shortest string is just one character
+        If InStr(1, S2, S1, vbBinaryCompare) > 0 Then
+            fuzzy = 1 / D2
+        Else
+            fuzzy = 0
+        End If
+    Else '******* MAIN LOGIC HERE *******
+        i = 1
+        f = 0
+        o = 0
+        Do 'count the identical characters in s1 and s2 ("frequency analysis")
+            p = InStr(1, S2, Mid(S1, i, 1), vbBinaryCompare)
+            'search the character at position i from s1 in s2
+            If p > 0 Then 'found a matching character, at position p in s2
+                f = f + 1 'increment the frequency counter
+                S2 = Left(S2, p - 1) & "~" & Mid(S2, p + 1)
+                'replace the found character with one outside the allowable list
+                '(I used tilde here), to prevent re-finding
+                Do 'check the order of characters
+                    If i >= k Then Exit Do 'no more characters to search
+                    If Mid(S2, p + 1, 1) = Mid(S1, i + 1, 1) Then
+                    'test if the next character is the same in the two strings
+                        f = f + 1 'increment the frequency counter
+                        o = o + 1 'increment the order counter
+                        i = i + 1
+                        p = p + 1
+                    Else
+                        Exit Do
+                    End If
+                Loop
+            End If
+            If i >= k Then Exit Do
+            i = i + 1
+        Loop
+        If o > 0 Then o = o + 1 'if we got at least one match, adjust the order counter
+                                'because two characters are required to define "order"
+finish:
+        w = 15 'Weight of characters order match against characters frequency match;
+                'feel free to experiment, to get best matching results with your data.
+                'If only frequency is important, you can get rid of the second Do...Loop
+                'to significantly accelerate the code.
+                'By altering a bit the code above and the equation below you may get rid
+                'of the frequency parameter, since the order counter increments only for
+                'identical characters which are in the same order.
+                'However, I usually keep both parameters, since they offer maximum flexibility
+                'with a variety of data, and both should be maintained for this project
+        fuzzy = (w * o + f) / (w + 1) / D2
+    End If
+End Function
