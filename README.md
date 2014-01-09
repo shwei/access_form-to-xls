@@ -6,4 +6,4 @@ Export metadata from MS Access forms to XLS
 
 Usage
 ------------------
-Download the file with .mdb extension and double-click on frmExportMSAccessMetadata Form.
+Download the file, [file_name].mdb and double-click on frmExportMSAccessMetadata Form.
