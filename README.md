@@ -13,4 +13,4 @@ Download the file, [file_name].mdb and double-click on frmExportMSAccessMetadata
 
 Background
 ------------------
-I had to convert several MS Access databases to REDCap (http://project-redcap.org/) projects. I needed a way to put together a data dictionary without too much of manual manipulation. This is what I used and it was based on the work of Hal Beresford's Export Access Metadata application. Without it, the conversion effort will not be achievable in a short amount of time. Thank you, Hal Beresford.
+I had to convert several MS Access databases to REDCap (http://project-redcap.org/) projects. I needed a way to put together a data dictionary without too much of manual manipulation. This is what I put together and used. The work was based on Hal Beresford's Export Access Metadata application. Without it, the conversion effort will not be achievable in a short amount of time. Thank you, Hal Beresford.
